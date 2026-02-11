@@ -61,14 +61,105 @@ model, scaler, feature_names = load_model()
 st.sidebar.success(f"Model: **{type(model).__name__}** ({len(feature_names)} features)")
 
 # ==================================================
+# Sample Presets
+# ==================================================
+PRESETS = {
+    "Custom": {},
+    "Starter Home": {
+        "overall_qual": 5, "overall_cond": 6, "year_built": 1965, "year_remod": 1965,
+        "gr_liv_area": 900, "lot_area": 6000, "total_bsmt_sf": 900, "first_flr_sf": 900,
+        "second_flr_sf": 0, "garage_cars": 1, "garage_area": 280, "garage_type": "Detchd",
+        "garage_finish": "Unf", "mas_vnr_area": 0, "mas_vnr_type": "None",
+        "full_bath": 1, "half_bath": 0, "bsmt_full_bath": 0, "bsmt_half_bath": 0,
+        "bedrooms": 2, "kitchen_qual": "TA", "tot_rms": 5, "neighborhood": "Edwards",
+        "ms_zoning": "RL", "bldg_type": "1Fam", "house_style": "1Story",
+        "exter_qual": "TA", "bsmt_qual": "TA", "fireplace_qu": None, "fireplaces": 0,
+        "central_air": "Y", "heating_qc": "TA", "pool_area": 0, "wood_deck_sf": 0,
+        "open_porch_sf": 0, "enclosed_porch": 0, "screen_porch": 0, "fence": None,
+    },
+    "Average Family Home": {
+        "overall_qual": 6, "overall_cond": 5, "year_built": 1995, "year_remod": 1995,
+        "gr_liv_area": 1500, "lot_area": 9500, "total_bsmt_sf": 800, "first_flr_sf": 1000,
+        "second_flr_sf": 500, "garage_cars": 2, "garage_area": 480, "garage_type": "Attchd",
+        "garage_finish": "RFn", "mas_vnr_area": 100, "mas_vnr_type": "BrkFace",
+        "full_bath": 2, "half_bath": 1, "bsmt_full_bath": 0, "bsmt_half_bath": 0,
+        "bedrooms": 3, "kitchen_qual": "TA", "tot_rms": 7, "neighborhood": "NAmes",
+        "ms_zoning": "RL", "bldg_type": "1Fam", "house_style": "2Story",
+        "exter_qual": "TA", "bsmt_qual": "Gd", "fireplace_qu": "TA", "fireplaces": 1,
+        "central_air": "Y", "heating_qc": "Ex", "pool_area": 0, "wood_deck_sf": 100,
+        "open_porch_sf": 40, "enclosed_porch": 0, "screen_porch": 0, "fence": None,
+    },
+    "Modern Suburban": {
+        "overall_qual": 7, "overall_cond": 5, "year_built": 2005, "year_remod": 2005,
+        "gr_liv_area": 1800, "lot_area": 10000, "total_bsmt_sf": 1000, "first_flr_sf": 1000,
+        "second_flr_sf": 800, "garage_cars": 2, "garage_area": 550, "garage_type": "Attchd",
+        "garage_finish": "Fin", "mas_vnr_area": 200, "mas_vnr_type": "BrkFace",
+        "full_bath": 2, "half_bath": 1, "bsmt_full_bath": 1, "bsmt_half_bath": 0,
+        "bedrooms": 3, "kitchen_qual": "Gd", "tot_rms": 8, "neighborhood": "CollgCr",
+        "ms_zoning": "RL", "bldg_type": "1Fam", "house_style": "2Story",
+        "exter_qual": "Gd", "bsmt_qual": "Gd", "fireplace_qu": "Gd", "fireplaces": 1,
+        "central_air": "Y", "heating_qc": "Ex", "pool_area": 0, "wood_deck_sf": 150,
+        "open_porch_sf": 60, "enclosed_porch": 0, "screen_porch": 0, "fence": None,
+    },
+    "Luxury Estate": {
+        "overall_qual": 10, "overall_cond": 5, "year_built": 2008, "year_remod": 2008,
+        "gr_liv_area": 3500, "lot_area": 15000, "total_bsmt_sf": 2000, "first_flr_sf": 2000,
+        "second_flr_sf": 1500, "garage_cars": 3, "garage_area": 900, "garage_type": "Attchd",
+        "garage_finish": "Fin", "mas_vnr_area": 600, "mas_vnr_type": "Stone",
+        "full_bath": 3, "half_bath": 1, "bsmt_full_bath": 1, "bsmt_half_bath": 0,
+        "bedrooms": 4, "kitchen_qual": "Ex", "tot_rms": 12, "neighborhood": "NridgHt",
+        "ms_zoning": "RL", "bldg_type": "1Fam", "house_style": "2Story",
+        "exter_qual": "Ex", "bsmt_qual": "Ex", "fireplace_qu": "Ex", "fireplaces": 2,
+        "central_air": "Y", "heating_qc": "Ex", "pool_area": 500, "wood_deck_sf": 300,
+        "open_porch_sf": 200, "enclosed_porch": 0, "screen_porch": 200, "fence": "GdPrv",
+    },
+    "Vintage Fixer-Upper": {
+        "overall_qual": 4, "overall_cond": 4, "year_built": 1920, "year_remod": 1950,
+        "gr_liv_area": 1200, "lot_area": 7500, "total_bsmt_sf": 600, "first_flr_sf": 700,
+        "second_flr_sf": 500, "garage_cars": 1, "garage_area": 250, "garage_type": "Detchd",
+        "garage_finish": "Unf", "mas_vnr_area": 0, "mas_vnr_type": "None",
+        "full_bath": 1, "half_bath": 0, "bsmt_full_bath": 0, "bsmt_half_bath": 0,
+        "bedrooms": 3, "kitchen_qual": "Fa", "tot_rms": 6, "neighborhood": "OldTown",
+        "ms_zoning": "RM", "bldg_type": "1Fam", "house_style": "1.5Fin",
+        "exter_qual": "Fa", "bsmt_qual": "TA", "fireplace_qu": "Gd", "fireplaces": 1,
+        "central_air": "N", "heating_qc": "TA", "pool_area": 0, "wood_deck_sf": 0,
+        "open_porch_sf": 30, "enclosed_porch": 50, "screen_porch": 0, "fence": "MnWw",
+    },
+    "New Construction": {
+        "overall_qual": 8, "overall_cond": 5, "year_built": 2009, "year_remod": 2009,
+        "gr_liv_area": 2200, "lot_area": 11000, "total_bsmt_sf": 1200, "first_flr_sf": 1200,
+        "second_flr_sf": 1000, "garage_cars": 3, "garage_area": 700, "garage_type": "Attchd",
+        "garage_finish": "Fin", "mas_vnr_area": 300, "mas_vnr_type": "Stone",
+        "full_bath": 2, "half_bath": 1, "bsmt_full_bath": 1, "bsmt_half_bath": 0,
+        "bedrooms": 4, "kitchen_qual": "Ex", "tot_rms": 9, "neighborhood": "Somerst",
+        "ms_zoning": "RL", "bldg_type": "1Fam", "house_style": "2Story",
+        "exter_qual": "Gd", "bsmt_qual": "Ex", "fireplace_qu": "Gd", "fireplaces": 1,
+        "central_air": "Y", "heating_qc": "Ex", "pool_area": 0, "wood_deck_sf": 200,
+        "open_porch_sf": 80, "enclosed_porch": 0, "screen_porch": 0, "fence": None,
+    },
+}
+
+st.sidebar.header("📋 Sample Presets")
+preset_name = st.sidebar.selectbox(
+    "Select a preset to load",
+    list(PRESETS.keys()),
+    help="Choose a sample house type to auto-fill all fields",
+)
+preset = PRESETS[preset_name]
+
+def get_val(key, default):
+    """Get value from preset or use default."""
+    return preset.get(key, default)
+
+# ==================================================
 # Sidebar - Key Parameters
 # ==================================================
 st.sidebar.header("🔧 Key Parameters")
 
-overall_qual = st.sidebar.slider("Overall Quality", 1, 10, 7, help="Overall material and finish quality (1-10)")
-overall_cond = st.sidebar.slider("Overall Condition", 1, 10, 5, help="Overall condition rating (1-10)")
-year_built = st.sidebar.slider("Year Built", 1870, 2025, 2003)
-year_remod = st.sidebar.slider("Year Remodeled", 1870, 2025, 2003)
+overall_qual = st.sidebar.slider("Overall Quality", 1, 10, get_val("overall_qual", 7), help="Overall material and finish quality (1-10)")
+overall_cond = st.sidebar.slider("Overall Condition", 1, 10, get_val("overall_cond", 5), help="Overall condition rating (1-10)")
+year_built = st.sidebar.slider("Year Built", 1870, 2025, get_val("year_built", 2003))
+year_remod = st.sidebar.slider("Year Remodeled", 1870, 2025, get_val("year_remod", 2003))
 yr_sold = st.sidebar.selectbox("Year Sold", [2006, 2007, 2008, 2009, 2010], index=2)
 
 # ==================================================
@@ -78,30 +169,40 @@ col1, col2, col3 = st.columns(3)
 
 with col1:
     st.subheader("📐 Area")
-    gr_liv_area = st.number_input("Living Area (sqft)", 300, 6000, 1710, step=50)
-    lot_area = st.number_input("Lot Area (sqft)", 1000, 100000, 8450, step=500)
-    total_bsmt_sf = st.number_input("Basement Area (sqft)", 0, 5000, 856, step=50)
-    first_flr_sf = st.number_input("1st Floor (sqft)", 300, 5000, 856, step=50)
-    second_flr_sf = st.number_input("2nd Floor (sqft)", 0, 3000, 854, step=50)
+    gr_liv_area = st.number_input("Living Area (sqft)", 300, 6000, get_val("gr_liv_area", 1710), step=50)
+    lot_area = st.number_input("Lot Area (sqft)", 1000, 100000, get_val("lot_area", 8450), step=500)
+    total_bsmt_sf = st.number_input("Basement Area (sqft)", 0, 5000, get_val("total_bsmt_sf", 856), step=50)
+    first_flr_sf = st.number_input("1st Floor (sqft)", 300, 5000, get_val("first_flr_sf", 856), step=50)
+    second_flr_sf = st.number_input("2nd Floor (sqft)", 0, 3000, get_val("second_flr_sf", 854), step=50)
 
 with col2:
     st.subheader("🚗 Garage & Exterior")
-    garage_cars = st.selectbox("Garage Cars", [0, 1, 2, 3, 4], index=2)
-    garage_area = st.number_input("Garage Area (sqft)", 0, 1500, 548, step=50)
-    garage_type = st.selectbox("Garage Type", ["Attchd", "Detchd", "BuiltIn", "CarPort", "Basment", "2Types", None], index=0)
-    garage_finish = st.selectbox("Garage Finish", ["Fin", "RFn", "Unf", None], index=1)
-    mas_vnr_area = st.number_input("Masonry Veneer Area", 0, 1500, 196, step=25)
-    mas_vnr_type = st.selectbox("Masonry Veneer Type", ["BrkFace", "Stone", "BrkCmn", "None"], index=0)
+    _garage_cars_opts = [0, 1, 2, 3, 4]
+    garage_cars = st.selectbox("Garage Cars", _garage_cars_opts, index=_garage_cars_opts.index(get_val("garage_cars", 2)))
+    garage_area = st.number_input("Garage Area (sqft)", 0, 1500, get_val("garage_area", 548), step=50)
+    _garage_type_opts = ["Attchd", "Detchd", "BuiltIn", "CarPort", "Basment", "2Types", None]
+    garage_type = st.selectbox("Garage Type", _garage_type_opts, index=_garage_type_opts.index(get_val("garage_type", "Attchd")))
+    _garage_fin_opts = ["Fin", "RFn", "Unf", None]
+    garage_finish = st.selectbox("Garage Finish", _garage_fin_opts, index=_garage_fin_opts.index(get_val("garage_finish", "RFn")))
+    mas_vnr_area = st.number_input("Masonry Veneer Area", 0, 1500, get_val("mas_vnr_area", 196), step=25)
+    _mvt_opts = ["BrkFace", "Stone", "BrkCmn", "None"]
+    mas_vnr_type = st.selectbox("Masonry Veneer Type", _mvt_opts, index=_mvt_opts.index(get_val("mas_vnr_type", "BrkFace")))
 
 with col3:
     st.subheader("🛁 Rooms & Bath")
-    full_bath = st.selectbox("Full Bathrooms", [0, 1, 2, 3, 4], index=2)
-    half_bath = st.selectbox("Half Bathrooms", [0, 1, 2], index=1)
-    bsmt_full_bath = st.selectbox("Basement Full Bath", [0, 1, 2, 3], index=1)
-    bsmt_half_bath = st.selectbox("Basement Half Bath", [0, 1, 2], index=0)
-    bedrooms = st.selectbox("Bedrooms", [0, 1, 2, 3, 4, 5, 6], index=3)
-    kitchen_qual = st.selectbox("Kitchen Quality", ["Ex", "Gd", "TA", "Fa", "Po"], index=1)
-    tot_rms = st.slider("Total Rooms Above Grade", 2, 15, 8)
+    _fb_opts = [0, 1, 2, 3, 4]
+    full_bath = st.selectbox("Full Bathrooms", _fb_opts, index=_fb_opts.index(get_val("full_bath", 2)))
+    _hb_opts = [0, 1, 2]
+    half_bath = st.selectbox("Half Bathrooms", _hb_opts, index=_hb_opts.index(get_val("half_bath", 1)))
+    _bfb_opts = [0, 1, 2, 3]
+    bsmt_full_bath = st.selectbox("Basement Full Bath", _bfb_opts, index=_bfb_opts.index(get_val("bsmt_full_bath", 1)))
+    _bhb_opts = [0, 1, 2]
+    bsmt_half_bath = st.selectbox("Basement Half Bath", _bhb_opts, index=_bhb_opts.index(get_val("bsmt_half_bath", 0)))
+    _bed_opts = [0, 1, 2, 3, 4, 5, 6]
+    bedrooms = st.selectbox("Bedrooms", _bed_opts, index=_bed_opts.index(get_val("bedrooms", 3)))
+    _kq_opts = ["Ex", "Gd", "TA", "Fa", "Po"]
+    kitchen_qual = st.selectbox("Kitchen Quality", _kq_opts, index=_kq_opts.index(get_val("kitchen_qual", "Gd")))
+    tot_rms = st.slider("Total Rooms Above Grade", 2, 15, get_val("tot_rms", 8))
 
 # ==================================================
 # Additional Features (Expandable)
@@ -110,31 +211,42 @@ with st.expander("🏗️ Additional Features", expanded=False):
     acol1, acol2, acol3 = st.columns(3)
 
     with acol1:
-        neighborhood = st.selectbox("Neighborhood", [
+        _neigh_opts = [
             "NAmes", "CollgCr", "OldTown", "Edwards", "Somerst", "NridgHt",
             "Gilbert", "Sawyer", "NWAmes", "SawyerW", "BrkSide", "Crawfor",
             "Mitchel", "NoRidge", "Timber", "IDOTRR", "ClearCr", "StoneBr",
             "SWISU", "Blmngtn", "MeadowV", "BrDale", "Veenker", "NPkVill", "Blueste",
-        ], index=0)
-        ms_zoning = st.selectbox("Zoning", ["RL", "RM", "FV", "RH", "C (all)"], index=0)
-        bldg_type = st.selectbox("Building Type", ["1Fam", "TwnhsE", "Duplex", "Twnhs", "2fmCon"], index=0)
-        house_style = st.selectbox("House Style", ["1Story", "2Story", "1.5Fin", "SLvl", "SFoyer", "1.5Unf", "2.5Unf", "2.5Fin"], index=1)
+        ]
+        neighborhood = st.selectbox("Neighborhood", _neigh_opts, index=_neigh_opts.index(get_val("neighborhood", "NAmes")))
+        _zone_opts = ["RL", "RM", "FV", "RH", "C (all)"]
+        ms_zoning = st.selectbox("Zoning", _zone_opts, index=_zone_opts.index(get_val("ms_zoning", "RL")))
+        _btype_opts = ["1Fam", "TwnhsE", "Duplex", "Twnhs", "2fmCon"]
+        bldg_type = st.selectbox("Building Type", _btype_opts, index=_btype_opts.index(get_val("bldg_type", "1Fam")))
+        _hstyle_opts = ["1Story", "2Story", "1.5Fin", "SLvl", "SFoyer", "1.5Unf", "2.5Unf", "2.5Fin"]
+        house_style = st.selectbox("House Style", _hstyle_opts, index=_hstyle_opts.index(get_val("house_style", "2Story")))
 
     with acol2:
-        exter_qual = st.selectbox("Exterior Quality", ["Ex", "Gd", "TA", "Fa", "Po"], index=1)
-        bsmt_qual = st.selectbox("Basement Quality", ["Ex", "Gd", "TA", "Fa", "Po", None], index=1)
-        fireplace_qu = st.selectbox("Fireplace Quality", ["Ex", "Gd", "TA", "Fa", "Po", None], index=5)
-        fireplaces = st.selectbox("Fireplaces", [0, 1, 2, 3], index=0)
-        central_air = st.selectbox("Central Air", ["Y", "N"], index=0)
-        heating_qc = st.selectbox("Heating Quality", ["Ex", "Gd", "TA", "Fa", "Po"], index=0)
+        _eq_opts = ["Ex", "Gd", "TA", "Fa", "Po"]
+        exter_qual = st.selectbox("Exterior Quality", _eq_opts, index=_eq_opts.index(get_val("exter_qual", "Gd")))
+        _bq_opts = ["Ex", "Gd", "TA", "Fa", "Po", None]
+        bsmt_qual = st.selectbox("Basement Quality", _bq_opts, index=_bq_opts.index(get_val("bsmt_qual", "Gd")))
+        _fq_opts = ["Ex", "Gd", "TA", "Fa", "Po", None]
+        fireplace_qu = st.selectbox("Fireplace Quality", _fq_opts, index=_fq_opts.index(get_val("fireplace_qu", None)))
+        _fp_opts = [0, 1, 2, 3]
+        fireplaces = st.selectbox("Fireplaces", _fp_opts, index=_fp_opts.index(get_val("fireplaces", 0)))
+        _ca_opts = ["Y", "N"]
+        central_air = st.selectbox("Central Air", _ca_opts, index=_ca_opts.index(get_val("central_air", "Y")))
+        _hqc_opts = ["Ex", "Gd", "TA", "Fa", "Po"]
+        heating_qc = st.selectbox("Heating Quality", _hqc_opts, index=_hqc_opts.index(get_val("heating_qc", "Ex")))
 
     with acol3:
-        pool_area = st.number_input("Pool Area", 0, 800, 0, step=50)
-        wood_deck_sf = st.number_input("Wood Deck (sqft)", 0, 1000, 0, step=25)
-        open_porch_sf = st.number_input("Open Porch (sqft)", 0, 600, 61, step=25)
-        enclosed_porch = st.number_input("Enclosed Porch (sqft)", 0, 600, 0, step=25)
-        screen_porch = st.number_input("Screen Porch (sqft)", 0, 600, 0, step=25)
-        fence = st.selectbox("Fence", [None, "GdPrv", "MnPrv", "GdWo", "MnWw"], index=0)
+        pool_area = st.number_input("Pool Area", 0, 800, get_val("pool_area", 0), step=50)
+        wood_deck_sf = st.number_input("Wood Deck (sqft)", 0, 1000, get_val("wood_deck_sf", 0), step=25)
+        open_porch_sf = st.number_input("Open Porch (sqft)", 0, 600, get_val("open_porch_sf", 61), step=25)
+        enclosed_porch = st.number_input("Enclosed Porch (sqft)", 0, 600, get_val("enclosed_porch", 0), step=25)
+        screen_porch = st.number_input("Screen Porch (sqft)", 0, 600, get_val("screen_porch", 0), step=25)
+        _fence_opts = [None, "GdPrv", "MnPrv", "GdWo", "MnWw"]
+        fence = st.selectbox("Fence", _fence_opts, index=_fence_opts.index(get_val("fence", None)))
 
 # ==================================================
 # Build features dict
