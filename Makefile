@@ -13,11 +13,32 @@ setup:
 train:
 	python -m house_prices.models.train
 
+train-advanced:
+	cd src && python -m house_prices.models.train_advanced --n-trials 50 --top-n 5
+
+train-quick:
+	cd src && python -m house_prices.models.train_advanced --n-trials 10 --top-n 3
+
 predict:
 	python -m house_prices.models.predict
 
 submit: train predict
 	@echo "Submission file created in submissions/"
+
+# =============================================
+# API
+# =============================================
+api:
+	PYTHONPATH=src uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+
+api-docker:
+	docker compose up --build
+
+app:
+	PYTHONPATH=src streamlit run app.py
+
+mlflow-ui:
+	mlflow ui --backend-store-uri mlruns --port 5000
 
 # =============================================
 # EDA

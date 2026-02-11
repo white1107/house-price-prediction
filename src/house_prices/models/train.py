@@ -164,11 +164,10 @@ def train_and_evaluate(config: dict) -> tuple[str, object, StandardScaler]:
     joblib.dump(test_ids, models_dir / "test_ids.joblib")
     logger.info(f"Saved model artifacts to {models_dir}")
 
-    # Log best model to MLflow
+    # Log best model to MLflow (metrics only, skip heavy model serialization)
     with mlflow.start_run(run_name=f"best_{best_name}"):
         mlflow.log_params(best_model.get_params())
         mlflow.log_metric("cv_rmse_mean", best_score)
-        mlflow.sklearn.log_model(best_model, "model")
 
     return best_name, best_model, scaler
 
