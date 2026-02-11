@@ -4,8 +4,10 @@ import sys
 from pathlib import Path
 
 import joblib
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import shap
 import streamlit as st
 
 PROJECT_ROOT = Path(__file__).resolve().parent
@@ -26,8 +28,24 @@ def load_model():
     return model, scaler, feature_names
 
 
-def predict_price(features_dict, model, scaler, feature_names):
-    """Run prediction pipeline on a single house."""
+@st.cache_resource
+def load_shap_explainer(_model, _scaler, feature_names):
+    """Create SHAP explainer (cached to avoid recomputation)."""
+    # Use a background dataset for KernelExplainer or LinearExplainer
+    model_name = type(_model).__name__
+    if model_name in ("Lasso", "Ridge", "ElasticNet", "LinearRegression"):
+        explainer = shap.LinearExplainer(_model, np.zeros((1, len(feature_names))))
+    else:
+        # For tree models, use TreeExplainer
+        try:
+            explainer = shap.TreeExplainer(_model)
+        except Exception:
+            explainer = None
+    return explainer
+
+
+def prepare_input(features_dict, feature_names, scaler):
+    """Prepare input DataFrame for prediction."""
     for key, val in features_dict.items():
         if val is None:
             features_dict[key] = np.nan
@@ -41,7 +59,13 @@ def predict_price(features_dict, model, scaler, feature_names):
     df = df[feature_names]
 
     df_scaled = pd.DataFrame(scaler.transform(df), columns=feature_names)
-    pred = model.predict(df_scaled.iloc[[0]])[0]
+    return df_scaled.iloc[[0]]
+
+
+def predict_price(features_dict, model, scaler, feature_names):
+    """Run prediction pipeline on a single house."""
+    df_scaled = prepare_input(features_dict, feature_names, scaler)
+    pred = model.predict(df_scaled)[0]
     return float(np.expm1(pred))
 
 
@@ -362,7 +386,75 @@ with pcol3:
 st.progress(min(predicted_price / 600000, 1.0))
 st.caption(f"Range: $0 - $600,000+")
 
-# Feature summary
+# ==================================================
+# SHAP Explanation
+# ==================================================
+st.subheader("🔍 SHAP - Why this price?")
+
+explainer = load_shap_explainer(model, scaler, feature_names)
+
+if explainer is not None:
+    df_input = prepare_input(dict(features), feature_names, scaler)
+    shap_values = explainer.shap_values(df_input)
+
+    if isinstance(shap_values, list):
+        shap_vals = shap_values[0].flatten()
+    else:
+        shap_vals = shap_values.flatten()
+
+    # Top contributing features
+    shap_df = pd.DataFrame({
+        "Feature": feature_names,
+        "SHAP Value": shap_vals,
+        "Abs SHAP": np.abs(shap_vals),
+    }).sort_values("Abs SHAP", ascending=False)
+
+    top_n = 15
+    top_features = shap_df.head(top_n).sort_values("SHAP Value")
+
+    # Waterfall-style horizontal bar chart
+    fig, ax = plt.subplots(figsize=(10, 6))
+    colors = ["#ff4b4b" if v < 0 else "#0068c9" for v in top_features["SHAP Value"]]
+    ax.barh(range(len(top_features)), top_features["SHAP Value"], color=colors)
+    ax.set_yticks(range(len(top_features)))
+    ax.set_yticklabels(top_features["Feature"], fontsize=10)
+    ax.set_xlabel("SHAP Value (impact on log price)", fontsize=11)
+    ax.set_title(f"Top {top_n} Feature Contributions", fontsize=13, fontweight="bold")
+    ax.axvline(x=0, color="gray", linewidth=0.8, linestyle="--")
+
+    # Add value labels
+    for i, (val, feat) in enumerate(zip(top_features["SHAP Value"], top_features["Feature"])):
+        ax.text(
+            val + (0.002 if val >= 0 else -0.002),
+            i,
+            f"{val:+.4f}",
+            va="center",
+            ha="left" if val >= 0 else "right",
+            fontsize=9,
+        )
+
+    plt.tight_layout()
+    st.pyplot(fig)
+    plt.close()
+
+    # Legend
+    scol1, scol2 = st.columns(2)
+    with scol1:
+        st.markdown("🔵 **Blue** = Increases price")
+    with scol2:
+        st.markdown("🔴 **Red** = Decreases price")
+
+    # Detailed SHAP table
+    with st.expander("📋 Full SHAP Values (all features)"):
+        display_df = shap_df[["Feature", "SHAP Value"]].copy()
+        display_df["SHAP Value"] = display_df["SHAP Value"].apply(lambda x: f"{x:+.6f}")
+        st.dataframe(display_df, use_container_width=True, hide_index=True)
+else:
+    st.info("SHAP is not available for this model type. Train with a tree-based or linear model to enable SHAP explanations.")
+
+# ==================================================
+# Feature Summary
+# ==================================================
 with st.expander("📊 Feature Summary"):
     summary = pd.DataFrame({
         "Category": ["Quality", "Quality", "Area", "Area", "Area", "Rooms", "Age", "Garage"],
