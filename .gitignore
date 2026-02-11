@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual Environment
+.venv/
+venv/
+env/
+
+# Data (large files)
+data/raw/*.zip
+data/raw/*.csv
+data/processed/*.csv
+
+# Models
+models/*.pkl
+models/*.joblib
+
+# MLflow
+mlruns/
+mlflow.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets
+.env
+kaggle.json

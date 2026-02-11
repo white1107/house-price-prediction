@@ -1,0 +1,85 @@
+# =============================================
+# House Prices Pipeline Configuration
+# =============================================
+
+data:
+  raw_dir: data/raw
+  processed_dir: data/processed
+  train_file: train.csv
+  test_file: test.csv
+
+preprocessing:
+  outliers:
+    # GrLivArea > threshold を除去
+    gr_liv_area_max: 4000
+  target:
+    # SalePrice に log1p 変換を適用
+    log_transform: true
+
+features:
+  # 新規作成する特徴量
+  engineered:
+    - TotalSF        # TotalBsmtSF + 1stFlrSF + 2ndFlrSF
+    - TotalBathrooms  # FullBath + 0.5*HalfBath + BsmtFullBath + 0.5*BsmtHalfBath
+    - TotalPorchSF   # OpenPorchSF + EnclosedPorch + 3SsnPorch + ScreenPorch
+    - HouseAge       # YrSold - YearBuilt
+    - RemodAge       # YrSold - YearRemodAdd
+    - HasPool
+    - HasGarage
+    - HasFireplace
+
+  # 順序エンコーディング対象
+  ordinal_mappings:
+    quality: {Ex: 5, Gd: 4, TA: 3, Fa: 2, Po: 1, None: 0}
+    bsmt_exposure: {Gd: 4, Av: 3, Mn: 2, "No": 1, None: 0}
+    garage_finish: {Fin: 3, RFn: 2, Unf: 1, None: 0}
+
+model:
+  # クロスバリデーション
+  cv_folds: 5
+  random_state: 42
+  scoring: neg_root_mean_squared_error
+
+  # モデルハイパーパラメータ
+  ridge:
+    alpha: 10.0
+
+  lasso:
+    alpha: 0.0005
+
+  elasticnet:
+    alpha: 0.0005
+    l1_ratio: 0.5
+
+  random_forest:
+    n_estimators: 300
+    max_depth: 15
+    min_samples_split: 5
+
+  gradient_boosting:
+    n_estimators: 300
+    learning_rate: 0.05
+    max_depth: 4
+    min_samples_split: 5
+
+  xgboost:
+    n_estimators: 500
+    learning_rate: 0.05
+    max_depth: 4
+    subsample: 0.8
+    colsample_bytree: 0.8
+
+  lightgbm:
+    n_estimators: 500
+    learning_rate: 0.05
+    max_depth: 4
+    num_leaves: 31
+    subsample: 0.8
+
+mlflow:
+  experiment_name: house-prices
+  tracking_uri: mlruns
+
+output:
+  submissions_dir: submissions
+  models_dir: models
